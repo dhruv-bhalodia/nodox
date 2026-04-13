@@ -90,7 +90,7 @@ export function attachUiRoutes(app, { uiPath = '/__nodox' } = {}) {
   const uiDir = findUiDir()
 
   if (!uiDir) {
-    app.get(`${uiPath}*`, (req, res) => {
+    app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
       _applySecurityHeaders(res)
       res.send(_notBuiltHtml(uiPath))
     })
@@ -106,7 +106,7 @@ export function attachUiRoutes(app, { uiPath = '/__nodox' } = {}) {
 
   // SPA catch-all: every /__nodox/* request serves index.html
   // The React router handles client-side navigation
-  app.get(`${uiPath}*`, (req, res) => {
+  app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
     _applySecurityHeaders(res)
     _serveIndexHtml(res, uiDir, uiPath)
   })
