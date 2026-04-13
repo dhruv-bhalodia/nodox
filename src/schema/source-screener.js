@@ -24,8 +24,8 @@ const ZOD_PATTERNS = [
   /\bz\.(object|string|number|boolean|array|union|enum)\b/,
   /_zod\.z\./,           // transpiled: import * as _zod from 'zod'
   /zod_1\.z\./,          // commonjs transpiled by tsc
-  /\w+\.parse\b/,        // Catch anyVariable.parse()
-  /\w+\.safeParse\b/,    // Catch anyVariable.safeParse()
+  /[a-zA-Z]{2,}\.parse\(/,        // Catch anyVariable.parse() — excludes single-char (valibot's v.parse)
+  /[a-zA-Z]{2,}\.safeParse\(/,    // Catch anyVariable.safeParse() — excludes single-char
   // Catch any variableName.parse(req.*) — the most common validation pattern.
   /\.parse\(req[.,\s)]/,
   /\w+[Ss]chema\.parse\(/,
