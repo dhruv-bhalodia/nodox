@@ -11,8 +11,17 @@
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
+import { createRequire } from 'module'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const _require = createRequire(import.meta.url)
+
+function _getExpressMajor() {
+  try {
+    const v = _require('express/package.json').version || '4'
+    return parseInt(v.split('.')[0], 10)
+  } catch { return 4 }
+}
 
 /**
  * Find the UI dist directory.
@@ -90,7 +99,7 @@ export function attachUiRoutes(app, { uiPath = '/__nodox' } = {}) {
   const uiDir = findUiDir()
 
   if (!uiDir) {
-    app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
+    _registerCatchAll(app, uiPath, (req, res) => {
       _applySecurityHeaders(res)
       res.send(_notBuiltHtml(uiPath))
     })
@@ -106,7 +115,7 @@ export function attachUiRoutes(app, { uiPath = '/__nodox' } = {}) {
 
   // SPA catch-all: every /__nodox/* request serves index.html
   // The React router handles client-side navigation
-  app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
+  _registerCatchAll(app, uiPath, (req, res) => {
     _applySecurityHeaders(res)
     _serveIndexHtml(res, uiDir, uiPath)
   })
@@ -208,6 +217,24 @@ function _sendAsset(res, filePath) {
  * @param {string} dir
  * @returns {Function} Express middleware
  */
+/**
+ * Register the SPA catch-all route using the correct wildcard syntax for the
+ * installed Express version.
+ *   Express 4: bare * wildcard  — /__nodox*
+ *   Express 5: named wildcard  — /__nodox and /__nodox/*path (two routes)
+ * Using a string path (not RegExp) ensures the route extractor can filter it
+ * out correctly via the startsWith('/__nodox') check.
+ */
+function _registerCatchAll(app, uiPath, handler) {
+  const major = _getExpressMajor()
+  if (major >= 5) {
+    app.get(uiPath, handler)
+    app.get(`${uiPath}/*path`, handler)
+  } else {
+    app.get(`${uiPath}*`, handler)
+  }
+}
+
 function createStaticHandler(dir) {
   return (req, res, next) => {
     const filename = req.path.replace(/^\/+/, '')
