@@ -418,7 +418,7 @@ function createUiHandler({ uiPath = "/__nodox" } = {}) {
 function attachUiRoutes(app, { uiPath = "/__nodox" } = {}) {
   const uiDir = findUiDir();
   if (!uiDir) {
-    app.get(`${uiPath}*`, (req, res) => {
+    app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
       _applySecurityHeaders(res);
       res.send(_notBuiltHtml(uiPath));
     });
@@ -428,7 +428,7 @@ function attachUiRoutes(app, { uiPath = "/__nodox" } = {}) {
     _applySecurityHeaders(res);
     createStaticHandler(import_path.default.join(uiDir, "assets"))(req, res, next);
   });
-  app.get(`${uiPath}*`, (req, res) => {
+  app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
     _applySecurityHeaders(res);
     _serveIndexHtml(res, uiDir, uiPath);
   });
