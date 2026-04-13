@@ -45,7 +45,7 @@ Higher-confidence layers are never downgraded by lower ones.
 
 ---
 
-## Explicit schema (recommended)
+## Explicit schema (recommended but optional)
 
 Wrap any route handler with `validate()` to get confirmed schema detection instantly:
 
