@@ -5,8 +5,8 @@
  * projects using "type": "commonjs" (or no "type" field) can require() nodox.
  *
  * Output:
- *   dist/index.cjs        — main middleware entry (require('nodox'))
- *   dist/jest-setup.cjs   — jest setup file (require('nodox/jest-setup'))
+ *   dist/index.cjs        — main middleware entry (require('nodox-cli'))
+ *   dist/jest-setup.cjs   — jest setup file (require('nodox-cli/jest-setup'))
  *
  * Strategy:
  *   - Use esbuild to bundle each entry with --format=cjs --platform=node

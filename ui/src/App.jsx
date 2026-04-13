@@ -279,7 +279,7 @@ function RouteDetail({ route, baseUrl }) {
                 Use <code>validate(schema)</code> for instant schema detection, or make a
                 request to observe the response shape.
               </p>
-              <pre className="empty-state__code">{`import { validate } from 'nodox'\nimport { z } from 'zod'\n\napp.post('${route.path}',\n  validate(z.object({ id: z.number() })),\n  handler\n)`}</pre>
+              <pre className="empty-state__code">{`import { validate } from 'nodox-cli'\nimport { z } from 'zod'\n\napp.post('${route.path}',\n  validate(z.object({ id: z.number() })),\n  handler\n)`}</pre>
             </div>
           )}
         </div>
@@ -442,7 +442,7 @@ export default function App() {
         </>)}
 
         <div className="sidebar__footer">
-          <span className="muted">nodox v0.1.0</span>
+          <span className="muted">nodox v0.1.1</span>
           <EnvSwitcher baseUrl={baseUrl} onChange={handleBaseUrlChange} />
         </div>
       </aside>

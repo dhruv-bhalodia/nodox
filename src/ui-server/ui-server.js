@@ -20,14 +20,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  */
 function findUiDir() {
   const candidates = [
-    // Installed from npm: dist/ui/ next to the middleware dist files
+    // Installed from npm, CJS bundle: __dirname = nodox-cli/dist/
+    path.resolve(__dirname, '../ui/dist'),
+    // Installed from npm, ESM source: __dirname = nodox-cli/src/ui-server/
+    path.resolve(__dirname, '../../ui/dist'),
+    // Running from source
     path.resolve(__dirname, './ui'),
     path.resolve(__dirname, '../ui'),
     path.resolve(__dirname, '../../dist/ui'),
-    // Running from source: ui/dist/ in the repo root
-    path.resolve(__dirname, '../../ui/dist'),
-    // Fallback for monorepo setups
-    path.resolve(__dirname, '../ui'),
   ]
 
   for (const candidate of candidates) {
@@ -73,7 +73,7 @@ export function createUiHandler({ uiPath = '/__nodox' } = {}) {
       if (!fs.existsSync(filePath)) { return next() }
       _sendAsset(res, filePath)
     } else {
-      res.sendFile(path.join(uiDir, 'index.html'))
+      _serveIndexHtml(res, uiDir, uiPath)
     }
   }
 }
@@ -108,8 +108,29 @@ export function attachUiRoutes(app, { uiPath = '/__nodox' } = {}) {
   // The React router handles client-side navigation
   app.get(`${uiPath}*`, (req, res) => {
     _applySecurityHeaders(res)
-    res.sendFile(path.join(uiDir, 'index.html'))
+    _serveIndexHtml(res, uiDir, uiPath)
   })
+}
+
+/** Cache patched HTML per uiPath to avoid re-reading on every request. */
+const _indexHtmlCache = new Map()
+
+/**
+ * Serve index.html, rewriting the hardcoded /__nodox base path to the
+ * configured uiPath so custom paths (e.g. /docs) load assets correctly.
+ */
+function _serveIndexHtml(res, uiDir, uiPath) {
+  let html = _indexHtmlCache.get(uiPath)
+  if (!html) {
+    html = fs.readFileSync(path.join(uiDir, 'index.html'), 'utf8')
+    if (uiPath !== '/__nodox') {
+      html = html.replaceAll('/__nodox/', `${uiPath}/`)
+    }
+    _indexHtmlCache.set(uiPath, html)
+  }
+  res.setHeader('Content-Type', 'text/html')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.send(html)
 }
 
 /**

@@ -369,14 +369,14 @@ var import_url = require("url");
 var __dirname = import_path.default.dirname((0, import_url.fileURLToPath)(__importMetaUrl));
 function findUiDir() {
   const candidates = [
-    // Installed from npm: dist/ui/ next to the middleware dist files
+    // Installed from npm, CJS bundle: __dirname = nodox-cli/dist/
+    import_path.default.resolve(__dirname, "../ui/dist"),
+    // Installed from npm, ESM source: __dirname = nodox-cli/src/ui-server/
+    import_path.default.resolve(__dirname, "../../ui/dist"),
+    // Running from source
     import_path.default.resolve(__dirname, "./ui"),
     import_path.default.resolve(__dirname, "../ui"),
-    import_path.default.resolve(__dirname, "../../dist/ui"),
-    // Running from source: ui/dist/ in the repo root
-    import_path.default.resolve(__dirname, "../../ui/dist"),
-    // Fallback for monorepo setups
-    import_path.default.resolve(__dirname, "../ui")
+    import_path.default.resolve(__dirname, "../../dist/ui")
   ];
   for (const candidate of candidates) {
     if (import_fs.default.existsSync(import_path.default.join(candidate, "index.html"))) {
@@ -411,7 +411,7 @@ function createUiHandler({ uiPath = "/__nodox" } = {}) {
       }
       _sendAsset(res, filePath);
     } else {
-      res.sendFile(import_path.default.join(uiDir, "index.html"));
+      _serveIndexHtml(res, uiDir, uiPath);
     }
   };
 }
@@ -430,8 +430,22 @@ function attachUiRoutes(app, { uiPath = "/__nodox" } = {}) {
   });
   app.get(`${uiPath}*`, (req, res) => {
     _applySecurityHeaders(res);
-    res.sendFile(import_path.default.join(uiDir, "index.html"));
+    _serveIndexHtml(res, uiDir, uiPath);
   });
+}
+var _indexHtmlCache = /* @__PURE__ */ new Map();
+function _serveIndexHtml(res, uiDir, uiPath) {
+  let html = _indexHtmlCache.get(uiPath);
+  if (!html) {
+    html = import_fs.default.readFileSync(import_path.default.join(uiDir, "index.html"), "utf8");
+    if (uiPath !== "/__nodox") {
+      html = html.replaceAll("/__nodox/", `${uiPath}/`);
+    }
+    _indexHtmlCache.set(uiPath, html);
+  }
+  res.setHeader("Content-Type", "text/html");
+  res.setHeader("Cache-Control", "no-cache");
+  res.send(html);
 }
 function _applySecurityHeaders(res) {
   res.setHeader(
@@ -632,10 +646,10 @@ var ZOD_PATTERNS = [
   // transpiled: import * as _zod from 'zod'
   /zod_1\.z\./,
   // commonjs transpiled by tsc
-  /\w+\.parse\b/,
-  // Catch anyVariable.parse()
-  /\w+\.safeParse\b/,
-  // Catch anyVariable.safeParse()
+  /[a-zA-Z]{2,}\.parse\(/,
+  // Catch anyVariable.parse() — excludes single-char (valibot's v.parse)
+  /[a-zA-Z]{2,}\.safeParse\(/,
+  // Catch anyVariable.safeParse() — excludes single-char
   // Catch any variableName.parse(req.*) — the most common validation pattern.
   /\.parse\(req[.,\s)]/,
   /\w+[Ss]chema\.parse\(/,
@@ -1289,7 +1303,7 @@ function captureValidateCallsite() {
       const match = line.match(/\((.+?):(\d+):\d+\)/) || line.match(/at (.+?):(\d+):\d+/);
       if (!match) continue;
       const file = match[1];
-      if (file.includes("nodox/src") || file.includes("node_modules/nodox")) continue;
+      if (file.includes("nodox-cli/src") || file.includes("node_modules/nodox-cli")) continue;
       if (file.includes("node:internal")) continue;
       const cwd = process.cwd();
       const relative = file.startsWith(cwd) ? file.slice(cwd.length).replace(/^[\\/]/, "") : file.split(/[\\/]node_modules[\\/]/).pop() ?? file;

@@ -65,7 +65,7 @@ export interface ValidateOptions {
  * @param options Optional settings.
  *
  * @example
- * import { validate } from 'nodox'
+ * import { validate } from 'nodox-cli'
  * import { z } from 'zod'
  *
  * const CreateUser = z.object({ name: z.string(), email: z.string().email() })
@@ -88,7 +88,7 @@ export function validate(schema: object, options?: ValidateOptions): RequestHand
  *
  * @example
  * import express from 'express'
- * import nodox from 'nodox'
+ * import nodox from 'nodox-cli'
  *
  * const app = express()
  * app.use(express.json())

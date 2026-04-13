@@ -9,7 +9,7 @@
  * Full example:
  *
  *   import express from 'express'
- *   import nodox from 'nodox'
+ *   import nodox from 'nodox-cli'
  *
  *   const app = express()
  *   app.use(express.json())

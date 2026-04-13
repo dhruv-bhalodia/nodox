@@ -120,39 +120,39 @@ describe('config injection (injectIntoExport)', () => {
 
   test('injects into clean export default {}', () => {
     const content = `export default {\n  testEnvironment: 'node',\n}`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
-    expect(result).toContain("setupFiles: ['nodox/jest-setup']")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
+    expect(result).toContain("setupFiles: ['nodox-cli/jest-setup']")
     expect(result).toContain("testEnvironment: 'node'")
   })
 
   test('injects into module.exports = {}', () => {
     const content = `module.exports = {\n  testEnvironment: 'node',\n}`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
-    expect(result).toContain("setupFiles: ['nodox/jest-setup']")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
+    expect(result).toContain("setupFiles: ['nodox-cli/jest-setup']")
   })
 
   test('injects into defineConfig({})', () => {
     const content = `import { defineConfig } from 'vitest/config'\nexport default defineConfig({\n  test: { environment: 'node' },\n})`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
-    expect(result).toContain("setupFiles: ['nodox/jest-setup']")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
+    expect(result).toContain("setupFiles: ['nodox-cli/jest-setup']")
   })
 
   test('adds comma before injected line when last entry has no trailing comma', () => {
     const content = `export default {\n  testEnvironment: 'node'\n}`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
     // Should have comma after testEnvironment line
     expect(result).toContain("'node',")
   })
 
   test('does not double-comma when last entry already has trailing comma', () => {
     const content = `export default {\n  testEnvironment: 'node',\n}`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
     expect(result).not.toContain("'node',,")
   })
 
   test('produces valid structure after injection', () => {
     const content = `export default {\n  testEnvironment: 'node',\n  transform: {},\n}`
-    const result = injectIntoExport(content, "  setupFiles: ['nodox/jest-setup'],")
+    const result = injectIntoExport(content, "  setupFiles: ['nodox-cli/jest-setup'],")
     // Verify brace balance
     const opens  = (result.match(/\{/g) || []).length
     const closes = (result.match(/\}/g) || []).length
@@ -174,22 +174,22 @@ describe('alreadyPresent detection', () => {
   }
 
   test('detects when nodox is already present in config', () => {
-    const content = `export default {\n  setupFiles: ['nodox/jest-setup'],\n}`
-    const result = injectSetupFile(content, 'nodox/jest-setup')
+    const content = `export default {\n  setupFiles: ['nodox-cli/jest-setup'],\n}`
+    const result = injectSetupFile(content, 'nodox-cli/jest-setup')
     expect(result.alreadyPresent).toBe(true)
   })
 
   test('adds to existing setupFiles array', () => {
     const content = `export default {\n  setupFiles: ['other-setup'],\n}`
-    const result = injectSetupFile(content, 'nodox/jest-setup')
+    const result = injectSetupFile(content, 'nodox-cli/jest-setup')
     expect(result.alreadyPresent).toBe(false)
-    expect(result.content).toContain('nodox/jest-setup')
+    expect(result.content).toContain('nodox-cli/jest-setup')
     expect(result.content).toContain('other-setup')
   })
 
   test('returns alreadyPresent false for clean config', () => {
     const content = `export default {\n  testEnvironment: 'node',\n}`
-    const result = injectSetupFile(content, 'nodox/jest-setup')
+    const result = injectSetupFile(content, 'nodox-cli/jest-setup')
     expect(result.alreadyPresent).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 /**
- * nodox/jest-setup — Layer 4: Test Suite Seeding
+ * nodox-cli/jest-setup — Layer 4: Test Suite Seeding
  *
  * Injected into the user's Jest or Vitest config by `npx nodox init`.
  * Runs once per test process before any test files load.

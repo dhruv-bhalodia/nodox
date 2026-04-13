@@ -296,7 +296,7 @@ export function initSchemaDetector() {
   } catch { /* yup not installed */ }
 }
 
-// Patch at module load time so schemas created after `import nodox from 'nodox'`
+// Patch at module load time so schemas created after `import nodox from 'nodox-cli'`
 // (including module-level const schema = z.object({...})) are registered
 // before the dry-run fires.
 initSchemaDetector()

@@ -136,7 +136,7 @@ function captureCallsite() {
                     line.match(/at (.+?):(\d+):\d+/)
       if (!match) continue
       const file = match[1]
-      if (file.includes('nodox/src') || file.includes('node_modules/nodox')) continue
+      if (file.includes('nodox-cli/src') || file.includes('node_modules/nodox-cli')) continue
       if (file.includes('node:internal')) continue
       // Return project-relative path — avoids leaking server filesystem layout
       const cwd = process.cwd()

@@ -5,7 +5,7 @@
 nodox is a drop-in middleware that automatically discovers all your Express routes, infers their request/response schemas, and serves a live documentation UI at `/__nodox`. Think FastAPI's `/docs`, but for Node.js.
 
 ```
-npm install nodox
+npm install nodox-cli
 ```
 
 ---
@@ -14,7 +14,7 @@ npm install nodox
 
 ```js
 import express from 'express'
-import nodox from 'nodox'
+import nodox from 'nodox-cli'
 
 const app = express()
 app.use(express.json())
@@ -50,7 +50,7 @@ Higher-confidence layers are never downgraded by lower ones.
 Wrap any route handler with `validate()` to get confirmed schema detection instantly:
 
 ```js
-import { validate } from 'nodox'
+import { validate } from 'nodox-cli'
 import { z } from 'zod'
 
 app.post('/users',
@@ -80,7 +80,7 @@ app.post('/login', validate(Joi.object({ username: Joi.string(), password: Joi.s
 Record real request/response shapes from your existing tests — no code changes required:
 
 ```bash
-npx nodox init    # injects nodox/jest-setup into your Jest/Vitest config
+npx nodox init    # injects nodox-cli/jest-setup into your Jest/Vitest config
 ```
 
 Shapes are stored in `.apicache.json` and loaded on the next server start. Run `npx nodox prune` to reset the cache.
@@ -128,8 +128,8 @@ npx nodox status  # show route count + schema coverage
 Type declarations are included. The package is ESM-first with a CJS fallback.
 
 ```ts
-import nodox, { validate } from 'nodox'
-import type { NodoxOptions, ValidateOptions } from 'nodox'
+import nodox, { validate } from 'nodox-cli'
+import type { NodoxOptions, ValidateOptions } from 'nodox-cli'
 ```
 
 ---

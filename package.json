@@ -1,6 +1,6 @@
 {
-  "name": "nodox",
-  "version": "0.1.0",
+  "name": "nodox-cli",
+  "version": "0.1.1",
   "description": "Instant interactive API documentation for Express — zero config, zero annotations",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -19,7 +19,7 @@
     }
   },
   "bin": {
-    "nodox": "./src/cli/nodox.js"
+    "nodox": "src/cli/nodox.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -52,7 +52,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dhruv-bhalodia/nodox"
+    "url": "git+https://github.com/dhruv-bhalodia/nodox.git"
   },
   "homepage": "https://github.com/dhruv-bhalodia/nodox#readme",
   "bugs": {

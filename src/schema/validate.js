@@ -5,7 +5,7 @@
  * Developers use this in place of writing their own validation middleware.
  *
  * Usage:
- *   import { validate } from 'nodox'
+ *   import { validate } from 'nodox-cli'
  *   import { z } from 'zod'
  *
  *   const createUserSchema = z.object({
@@ -420,7 +420,7 @@ function captureValidateCallsite() {
                     line.match(/at (.+?):(\d+):\d+/)
       if (!match) continue
       const file = match[1]
-      if (file.includes('nodox/src') || file.includes('node_modules/nodox')) continue
+      if (file.includes('nodox-cli/src') || file.includes('node_modules/nodox-cli')) continue
       if (file.includes('node:internal')) continue
       // Return a project-relative path instead of the full absolute path.
       // Avoids leaking the server's filesystem layout to the browser UI.

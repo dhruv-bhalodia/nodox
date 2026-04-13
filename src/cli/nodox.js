@@ -80,7 +80,7 @@ function runInit() {
   // 2. Determine the setup file path to inject
   // We reference the nodox package by package name so it works whether
   // nodox is installed globally or as a devDependency.
-  const setupEntry = 'nodox/jest-setup'
+  const setupEntry = 'nodox-cli/jest-setup'
 
   // 3. Inject into config
   const result = injectSetupFile(runner.configFile, setupEntry, runner.name)
@@ -303,7 +303,7 @@ function injectIntoVitestConfig(content, setupEntry) {
     const after = content.slice(insertAt)
     const needsComma = after.trimStart()[0] !== '}'
     return {
-      content: `${before}\n    setupFiles: ['${setupEntry}'],${needsComma ? '\\n' : ''}${after}`,
+      content: `${before}\n    setupFiles: ['${setupEntry}'],${needsComma ? '\n' : ''}${after}`,
       alreadyPresent: false,
     }
   }
