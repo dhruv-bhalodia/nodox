@@ -2,7 +2,7 @@
 
 **API documentation that works the moment you run your server — no annotations, no YAML, no setup.**
 
-nodox is an Express middleware that automatically discovers every route in your app, infers request/response schemas using a 5-layer detection pipeline, and serves a live interactive docs UI at `/__nodox`. Think FastAPI's `/docs`, but for Node.js — the first time you see it, your entire API is already there.
+nodox is an Express middleware that automatically discovers every route in your app, detects request/response schemas using a 5-layer pipeline, and serves a live interactive docs UI at `/__nodox`. Think FastAPI's `/docs`, but for Node.js — the first time you see it, your entire API is already there.
 
 ```bash
 npm install nodox-cli
@@ -14,7 +14,7 @@ npm install nodox-cli
 
 Annotation-based tools start empty — you get a blank UI and a checklist of work: annotate this route, write this YAML block, run this code generator. Traffic-based tools show routes but leave them schema-less until you hit every endpoint manually. Either way, the documentation is a separate project you maintain alongside your actual code.
 
-nodox is different. Add one line and your existing routes are immediately documented — with inferred schemas, an interactive playground, and live schema updates as real requests flow through.
+nodox is different. Add one line and your existing routes are immediately documented — with detected schemas, an interactive playground, and live schema updates as real requests flow through.
 
 | | nodox | express-oas-generator | swagger-jsdoc | tsoa | Postman |
 |---|---|---|---|---|---|
@@ -57,9 +57,11 @@ Passing `app` explicitly enables Layer 2 source screening immediately at startup
 
 ---
 
+> **Nothing below requires any code changes.** nodox detects schema from your existing handlers automatically — no annotations, no wrappers, no extra setup. `validate()` is covered later in this README as a purely optional enhancement. You can skip it entirely and still get full documentation for every route.
+
 ## How schema detection works
 
-nodox uses a **5-layer pipeline** to infer request/response schemas. Layers run in priority order — a higher-confidence result is never overwritten by a lower one.
+nodox uses a **5-layer pipeline** to detect request/response schemas. Layers run in priority order — a higher-confidence result is never overwritten by a lower one.
 
 | Layer | Source | What it does |
 |---|---|---|
@@ -69,7 +71,7 @@ nodox uses a **5-layer pipeline** to infer request/response schemas. Layers run 
 | 4 | Test suite recording (`.apicache.json`) | Loads shapes recorded from your real test suite |
 | 5 | Live `res.json()` interception | Intercepts actual responses as they happen in development |
 
-**express-validator** chains are detected automatically in Layer 2 — no wrapper needed. If your routes use `check()`, `body()`, or `param()` validation chains, nodox extracts field names and infers types directly from the validator names (`isEmail`, `isInt`, `isUUID`, etc.).
+**express-validator** chains are detected automatically in Layer 2 — no wrapper needed. If your routes use `check()`, `body()`, or `param()` validation chains, nodox extracts field names and detects types directly from the validator names (`isEmail`, `isInt`, `isUUID`, etc.).
 
 **Layers 2–5 run entirely on their own.** You don't write a single extra line for them — they work against your existing code as-is. Layer 1 (`validate()`) is there if you ever want to go further, but it is never required. If you never touch it, the other four layers still run and your entire API is still documented.
 
@@ -77,9 +79,19 @@ nodox uses a **5-layer pipeline** to infer request/response schemas. Layers run 
 
 ---
 
-## validate() — purely optional, for confirmed schema
+## A note on validate()
 
-If you want a schema to be *confirmed* rather than inferred — use `validate()`. It is Layer 1 of 5, and it is the only layer that requires you to write anything extra. Wrap a handler with it to attach a confirmed schema to a route; nodox marks those fields as confirmed in the UI.
+nodox is built on the assumption that most users will never touch `validate()` at all.
+
+The entire detection pipeline — source scanning, dry-runs, test recording, live interception — exists specifically so that your existing, unmodified codebase gets full documentation without any extra work. That is the core promise: no annotations, no changes to your handlers, no manual anything.
+
+`validate()` exists for one specific case: when you want a schema to be *confirmed* rather than detected. It is Layer 1 of 5. If you never use it, the other four layers still run and your routes are still documented.
+
+---
+
+## Explicit schema with validate() (optional)
+
+Wrap a handler with `validate()` to attach a confirmed schema to a route. nodox reads it at Layer 1 and marks those fields as confirmed in the UI.
 
 ```js
 import { validate } from 'nodox-cli'
@@ -155,7 +167,7 @@ Run `npx nodox prune` to reset the cache.
 ## UI features
 
 - **Schema tab** — field names, types, required badges, and a confidence indicator per field
-- **Playground** — send live requests directly from the browser; path params render as inline inputs; body fields are pre-filled from inferred schema; query parameters are documented for GET, DELETE, HEAD, and OPTIONS routes
+- **Playground** — send live requests directly from the browser; path params render as inline inputs; body fields are pre-filled from detected schema; query parameters are documented for GET, DELETE, HEAD, and OPTIONS routes
 - **Chain builder** — connect routes on a canvas, wire output fields to input fields, and simulate multi-step flows with `{{step0.fieldName}}` interpolation
 - **Environment switcher** — swap the base URL between local, staging, and production without leaving the UI
 - **Response diff** — save a baseline response and compare it against subsequent calls to catch regressions
@@ -174,7 +186,7 @@ app.use(nodox(app, {
 }))
 ```
 
-nodox is a **no-op in production** by default (`NODE_ENV=production`). Pass `force: true` to override — but do not expose `/__nodox` publicly, as it reveals all routes, inferred schemas, and a full request playground.
+nodox is a **no-op in production** by default (`NODE_ENV=production`). Pass `force: true` to override — but do not expose `/__nodox` publicly, as it reveals all routes, detected schemas, and a full request playground.
 
 ---
 
