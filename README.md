@@ -71,23 +71,15 @@ nodox uses a **5-layer pipeline** to infer request/response schemas. Layers run 
 
 **express-validator** chains are detected automatically in Layer 2 — no wrapper needed. If your routes use `check()`, `body()`, or `param()` validation chains, nodox extracts field names and infers types directly from the validator names (`isEmail`, `isInt`, `isUUID`, etc.).
 
-Routes with no schema data still appear in the UI — you can still send requests and explore them from the playground. Schema confidence improves automatically as real traffic flows through or tests are run.
+**Layers 2–5 run entirely on their own.** You don't write a single extra line for them — they work against your existing code as-is. Layer 1 (`validate()`) is there if you ever want to go further, but it is never required. If you never touch it, the other four layers still run and your entire API is still documented.
+
+> **Layer 3 runs in a sandbox.** The dry-run calls your handler with a mock request but blocks all outgoing network connections, database calls (covers TCP-based drivers like Postgres, MySQL, MongoDB, Redis), and filesystem writes. Nothing is executed for real — no external API is called, no database row is written, no file is touched. Real requests flowing through the server at the same time are completely unaffected.
 
 ---
 
-## A note on validate()
+## validate() — purely optional, for confirmed schema
 
-nodox is built on the assumption that most users will never touch `validate()` at all.
-
-The entire detection pipeline — source scanning, dry-runs, test recording, live interception — exists specifically so that your existing, unmodified codebase gets useful documentation without any extra work. That is the core promise: no annotations, no changes to your handlers, no manual anything.
-
-`validate()` exists for one specific case: when you want a schema to be *confirmed* rather than *inferred*. It is Layer 1 of 5. If you never use it, the other four layers still run and your routes are still documented.
-
----
-
-## Explicit schema with validate() (optional)
-
-Wrap a handler with `validate()` to attach a confirmed schema to a route. nodox reads it at Layer 1 and marks those fields as confirmed in the UI.
+If you want a schema to be *confirmed* rather than inferred — use `validate()`. It is Layer 1 of 5, and it is the only layer that requires you to write anything extra. Wrap a handler with it to attach a confirmed schema to a route; nodox marks those fields as confirmed in the UI.
 
 ```js
 import { validate } from 'nodox-cli'
