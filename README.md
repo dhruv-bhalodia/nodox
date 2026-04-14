@@ -20,7 +20,7 @@ nodox is different. Add one line and your existing routes are immediately docume
 |---|---|---|---|---|---|
 | Setup | One middleware line | Two middleware placements (before + after routes) | Config file + point to routes | TypeScript decorators + codegen step | Manual collection or CLI generator |
 | Annotate every route? | No | No | Yes (`@swagger` JSDoc) | Yes (class decorators) | No (but no Express integration) |
-| Routes visible before any traffic? | Yes | No — empty until hit | No | No | Partial |
+| Schema without hitting routes? | Yes | No — needs real traffic | No — needs annotations | No — needs annotations | No |
 | Live request playground | Yes, built-in | Via Swagger UI | Via Swagger UI add-on | Via Swagger UI add-on | Separate app |
 | Schema from real traffic | Yes (Layer 5) | Yes (only mechanism) | No | No | No |
 | Multiple schema detection layers | Yes (5 layers) | No | No | No | No |
