@@ -2,7 +2,7 @@
 
 **API documentation that works the moment you run your server — no annotations, no YAML, no setup.**
 
-nodox is an Express middleware that automatically discovers every route in your app, infers request/response schemas using a 5-layer detection pipeline, and serves a live interactive docs UI at `/__nodox`. The first time you see it, your entire API is already there.
+nodox is an Express middleware that automatically discovers every route in your app, infers request/response schemas using a 5-layer detection pipeline, and serves a live interactive docs UI at `/__nodox`. Think FastAPI's `/docs`, but for Node.js — the first time you see it, your entire API is already there.
 
 ```bash
 npm install nodox-cli
@@ -12,18 +12,19 @@ npm install nodox-cli
 
 ## Why nodox
 
-Every other Express documentation tool starts empty. You get a blank UI and a checklist of work: annotate this route, write this YAML block, run this code generator, build this Postman collection. The documentation is a separate project you maintain alongside your actual code.
+Annotation-based tools start empty — you get a blank UI and a checklist of work: annotate this route, write this YAML block, run this code generator. Traffic-based tools show routes but leave them schema-less until you hit every endpoint manually. Either way, the documentation is a separate project you maintain alongside your actual code.
 
 nodox is different. Add one line and your existing routes are immediately documented — with inferred schemas, an interactive playground, and live schema updates as real requests flow through.
 
-| | nodox | swagger-jsdoc | tsoa | Postman |
-|---|---|---|---|---|
-| Setup | One middleware line | Config file + point to routes | TypeScript decorators + codegen step | Manual collection or CLI generator |
-| Annotate every route? | No | Yes (`@swagger` JSDoc) | Yes (class decorators) | No (but no Express integration) |
-| Works on existing code immediately? | Yes | No | No | Partial |
-| Live request playground | Yes, built-in | Via Swagger UI add-on | Via Swagger UI add-on | Separate app |
-| Schema from real traffic | Yes (Layer 5) | No | No | No |
-| Chain builder / flow simulation | Yes | No | No | No |
+| | nodox | express-oas-generator | swagger-jsdoc | tsoa | Postman |
+|---|---|---|---|---|---|
+| Setup | One middleware line | Two middleware placements (before + after routes) | Config file + point to routes | TypeScript decorators + codegen step | Manual collection or CLI generator |
+| Annotate every route? | No | No | Yes (`@swagger` JSDoc) | Yes (class decorators) | No (but no Express integration) |
+| Routes visible before any traffic? | Yes | No — empty until hit | No | No | Partial |
+| Live request playground | Yes, built-in | Via Swagger UI | Via Swagger UI add-on | Via Swagger UI add-on | Separate app |
+| Schema from real traffic | Yes (Layer 5) | Yes (only mechanism) | No | No | No |
+| Multiple schema detection layers | Yes (5 layers) | No | No | No | No |
+| Chain builder / flow simulation | Yes | No | No | No | Separate Flows tool |
 
 ---
 
@@ -162,7 +163,7 @@ Run `npx nodox prune` to reset the cache.
 ## UI features
 
 - **Schema tab** — field names, types, required badges, and a confidence indicator per field
-- **Playground** — send live requests directly from the browser; path params render as inline inputs; body fields are pre-filled from inferred schema; query parameters are documented for GET/DELETE routes
+- **Playground** — send live requests directly from the browser; path params render as inline inputs; body fields are pre-filled from inferred schema; query parameters are documented for GET, DELETE, HEAD, and OPTIONS routes
 - **Chain builder** — connect routes on a canvas, wire output fields to input fields, and simulate multi-step flows with `{{step0.fieldName}}` interpolation
 - **Environment switcher** — swap the base URL between local, staging, and production without leaving the UI
 - **Response diff** — save a baseline response and compare it against subsequent calls to catch regressions
