@@ -366,7 +366,17 @@ var NodoxWebSocketServer = class {
 var import_path = __toESM(require("path"), 1);
 var import_fs = __toESM(require("fs"), 1);
 var import_url = require("url");
+var import_module2 = require("module");
 var __dirname = import_path.default.dirname((0, import_url.fileURLToPath)(__importMetaUrl));
+var _require2 = (0, import_module2.createRequire)(__importMetaUrl);
+function _getExpressMajor() {
+  try {
+    const v = _require2("express/package.json").version || "4";
+    return parseInt(v.split(".")[0], 10);
+  } catch {
+    return 4;
+  }
+}
 function findUiDir() {
   const candidates = [
     // Installed from npm, CJS bundle: __dirname = nodox-cli/dist/
@@ -418,7 +428,7 @@ function createUiHandler({ uiPath = "/__nodox" } = {}) {
 function attachUiRoutes(app, { uiPath = "/__nodox" } = {}) {
   const uiDir = findUiDir();
   if (!uiDir) {
-    app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
+    _registerCatchAll(app, uiPath, (req, res) => {
       _applySecurityHeaders(res);
       res.send(_notBuiltHtml(uiPath));
     });
@@ -428,7 +438,7 @@ function attachUiRoutes(app, { uiPath = "/__nodox" } = {}) {
     _applySecurityHeaders(res);
     createStaticHandler(import_path.default.join(uiDir, "assets"))(req, res, next);
   });
-  app.get(new RegExp(`^${uiPath}(/|$)`), (req, res) => {
+  _registerCatchAll(app, uiPath, (req, res) => {
     _applySecurityHeaders(res);
     _serveIndexHtml(res, uiDir, uiPath);
   });
@@ -489,6 +499,15 @@ function _sendAsset(res, filePath) {
     res.setHeader("Cache-Control", "no-cache");
   }
   res.sendFile(filePath);
+}
+function _registerCatchAll(app, uiPath, handler) {
+  const major = _getExpressMajor();
+  if (major >= 5) {
+    app.get(uiPath, handler);
+    app.get(`${uiPath}/*path`, handler);
+  } else {
+    app.get(`${uiPath}*`, handler);
+  }
 }
 function createStaticHandler(dir) {
   return (req, res, next) => {
@@ -814,8 +833,8 @@ var import_fs2 = __toESM(require("fs"), 1);
 var import_child_process = __toESM(require("child_process"), 1);
 
 // src/schema/schema-patcher.js
-var import_module2 = require("module");
-var require2 = (0, import_module2.createRequire)(__importMetaUrl);
+var import_module3 = require("module");
+var require2 = (0, import_module3.createRequire)(__importMetaUrl);
 var capturedSchemas = /* @__PURE__ */ new WeakMap();
 
 // src/schema/dry-runner.js
@@ -1316,7 +1335,7 @@ function captureValidateCallsite() {
 }
 
 // src/schema/schema-detector.js
-var import_module3 = require("module");
+var import_module4 = require("module");
 
 // src/layer4/cache-reader.js
 var import_fs3 = __toESM(require("fs"), 1);
@@ -1345,7 +1364,7 @@ function loadCacheEntries(cacheFile) {
 }
 
 // src/schema/schema-detector.js
-var require3 = (0, import_module3.createRequire)(__importMetaUrl);
+var require3 = (0, import_module4.createRequire)(__importMetaUrl);
 var routeSchemas = /* @__PURE__ */ new Map();
 var parsedValueToSchema = /* @__PURE__ */ new WeakMap();
 var schemaJsonSchemaCache = /* @__PURE__ */ new WeakMap();

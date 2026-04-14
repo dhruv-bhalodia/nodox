@@ -336,9 +336,9 @@ export default function App() {
     return matchMethod && matchPath
   }), [routes, filter, methodFilter])
 
-  const activeRoute = selectedRoute &&
-    routes.find(r => r.method === selectedRoute.method && r.path === selectedRoute.path)
-    ? selectedRoute : null
+  const activeRoute = selectedRoute
+    ? routes.find(r => r.method === selectedRoute.method && r.path === selectedRoute.path) ?? null
+    : null
 
   return (
     <div className="app">
