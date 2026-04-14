@@ -255,21 +255,21 @@ export default function nodox(appOrOptions, options = {}) {
           if (!schema) return
           onInputObserved(method, routePath, shape, 'observed', () => {
             doExtraction()
-            wsServer?.broadcast({ type: 'schema-update', method, path: routePath })
+            wsServer?.broadcastFullSync()
           })
         },
         onRequestQueryShape(method, routePath, shape) {
           if (!schema) return
           onQueryObserved(method, routePath, shape, () => {
             doExtraction()
-            wsServer?.broadcast({ type: 'schema-update', method, path: routePath })
+            wsServer?.broadcastFullSync()
           })
         },
         onResponseShape(method, routePath, shape, confidence) {
           if (!schema) return
           onResponseObserved(method, routePath, shape, confidence, () => {
             doExtraction()
-            wsServer?.broadcast({ type: 'schema-update', method, path: routePath })
+            wsServer?.broadcastFullSync()
           })
         }
       })
