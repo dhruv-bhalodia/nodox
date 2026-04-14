@@ -75,6 +75,8 @@ nodox uses a **5-layer pipeline** to detect request/response schemas. Layers run
 
 **Layers 2–5 run entirely on their own.** You don't write a single extra line for them — they work against your existing code as-is. Layer 1 (`validate()`) is there if you ever want to go further, but it is never required. If you never touch it, the other four layers still run and your entire API is still documented.
 
+One honest caveat: if a handler has **no validation logic at all** (no Zod, Joi, yup, or express-validator — just reading `req.body` directly), there is nothing for Layers 2 and 3 to detect. The route still appears in the UI, but its request body schema will be populated once real traffic flows through Layer 5. Response schema detection is unaffected.
+
 > **Layer 3 runs in a sandbox.** The dry-run calls your handler with a mock request but blocks all outgoing network connections, database calls (covers TCP-based drivers like Postgres, MySQL, MongoDB, Redis), and filesystem writes. Nothing is executed for real — no external API is called, no database row is written, no file is touched. Real requests flowing through the server at the same time are completely unaffected.
 
 ---
@@ -91,57 +93,56 @@ The entire detection pipeline — source scanning, dry-runs, test recording, liv
 
 ## Explicit schema with validate() (optional)
 
-Wrap a handler with `validate()` to attach a confirmed schema to a route. nodox reads it at Layer 1 and marks those fields as confirmed in the UI.
+Wrap a handler with `validate()` to attach a confirmed schema to a route. nodox reads it at Layer 1 and marks those fields as confirmed in the UI. It also validates `req.body` at runtime — returning a structured `400` on failure, or passing the parsed and coerced value to the next handler on success.
+
+Define your schema once, then pass it to `validate()` as a middleware:
 
 ```js
 import { validate } from 'nodox-cli'
 import { z } from 'zod'
 
-app.post('/users',
-  validate(z.object({
-    name:  z.string(),
-    email: z.string().email(),
-    age:   z.number().int().optional(),
-  })),
-  async (req, res) => {
-    const user = await db.createUser(req.body)
-    res.json(user)
-  }
-)
+const CreateUserSchema = z.object({
+  name:  z.string(),
+  email: z.string().email(),
+  age:   z.number().int().optional(),
+})
+
+app.post('/users', validate(CreateUserSchema), async (req, res) => {
+  const user = await db.createUser(req.body)   // req.body is validated and coerced
+  res.json(user)
+})
 ```
 
-`validate()` also accepts **Joi**, **yup**, and plain **JSON Schema** objects:
+`validate()` accepts **Zod**, **Joi**, **yup**, and plain **JSON Schema** objects:
 
 ```js
 import Joi from 'joi'
-app.post('/login',
-  validate(Joi.object({ username: Joi.string(), password: Joi.string() })),
-  handler
-)
+
+const LoginSchema = Joi.object({
+  username: Joi.string().required(),
+  password: Joi.string().required(),
+})
+
+app.post('/login', validate(LoginSchema), handler)
 ```
 
-Beyond documenting the request schema, `validate()` also:
+### Document the response schema
 
-- **Validates `req.body`** and returns a `400` with structured error details on failure, or calls `next()` with `req.body` replaced by the parsed/coerced value on success
-- Accepts a `response` option to document the response schema (display only — outgoing responses are not validated):
+Pass a `response` schema to document what the route returns. This is used for display in the UI only — outgoing responses are not validated:
 
 ```js
-const UserSchema  = z.object({ name: z.string(), email: z.string().email() })
-const UserResponse = z.object({ id: z.number(), name: z.string(), email: z.string() })
+const CreateUserSchema = z.object({ name: z.string(), email: z.string().email() })
+const UserResponse     = z.object({ id: z.number(), name: z.string(), email: z.string() })
 
-app.post('/users',
-  validate(UserSchema, { response: UserResponse }),
-  handler
-)
+app.post('/users', validate(CreateUserSchema, { response: UserResponse }), handler)
 ```
 
-- Accepts a `strict` option to reject fields not declared in the schema:
+### Strict mode
+
+Pass `strict: true` to reject any fields not declared in the schema — unknown fields return a `400`:
 
 ```js
-app.post('/users',
-  validate(UserSchema, { strict: true }),   // unknown fields → 400
-  handler
-)
+app.post('/users', validate(CreateUserSchema, { strict: true }), handler)
 ```
 
 ---
