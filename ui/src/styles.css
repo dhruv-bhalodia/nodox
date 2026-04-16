@@ -104,7 +104,7 @@ body {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  padding: 5px 14px;
+  padding: 5px 8px;
   border: none;
   border-radius: 3px;
   background: transparent;
@@ -313,6 +313,10 @@ body {
   letter-spacing: 0.5px;
   min-width: 52px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* ── Route Path ─────────────────────────────────────── */
@@ -363,6 +367,10 @@ body {
   padding: 10px 16px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.sidebar__footer .muted {
+  color: var(--text-secondary);
 }
 
 /* ── Sidebar section title ──────────────────────────── */
@@ -893,6 +901,10 @@ code {
   cursor: pointer;
   flex-shrink: 0;
   transition: opacity 0.12s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .playground__send-btn:hover { opacity: 0.85; }
@@ -1003,13 +1015,13 @@ code {
 .schema-body-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
+  gap: 4px;
+  min-height: 28px;
 }
 
 .schema-body-key {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-primary);
   min-width: 100px;
   max-width: 150px;
@@ -1034,13 +1046,14 @@ code {
 
 .schema-body-value {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 11px;
   background: var(--bg-surface);
   border: 1px solid var(--border-hover);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  padding: 5px 8px;
+  padding: 4px 6px;
   flex: 1;
+  min-width: 0;
   outline: none;
   transition: border-color 0.12s;
 }
@@ -1255,6 +1268,10 @@ code {
   flex-shrink: 0;
   min-width: 52px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .chain-picker-path {
@@ -1357,10 +1374,13 @@ code {
   font-size: 6px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  padding: 2px 3px 0px 3px;
-  line-height: 1;
+  padding: 2px 3px;
   border-radius: 1px;
   border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .chain-node__delete {
@@ -1434,7 +1454,7 @@ code {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.8px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-transform: uppercase;
   flex-shrink: 0;
 }
@@ -1453,7 +1473,7 @@ code {
 }
 
 .env-switcher__input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -1762,6 +1782,10 @@ code {
   flex-shrink: 0;
   min-width: 46px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .sim-step__path {
@@ -1845,7 +1869,7 @@ code {
 
 .sim-param-name {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--accent);
   min-width: 60px;
   flex-shrink: 0;

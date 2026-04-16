@@ -291,7 +291,6 @@ function SimPanel({ steps, baseUrl, onClose }) {
                 <div className="sim-step__body">
                   {pathParams.length > 0 && (
                     <div className="sim-input-group">
-                      <div className="sim-input-group__label">Path params</div>
                       {pathParams.map(p => (
                         <div key={p} className="sim-param-row">
                           <span className="sim-param-name">:{p}</span>
@@ -312,14 +311,6 @@ function SimPanel({ steps, baseUrl, onClose }) {
 
                   {BODY_METHODS_SIM.has(method) && (
                     <div className="sim-input-group">
-                      <div className="sim-input-group__label">
-                        Body
-                        {i > 0 && (
-                          <span className="sim-hint">
-                            {'{{step0.field}}'} to reference previous results
-                          </span>
-                        )}
-                      </div>
                       {inputs[i].bodyFields.length > 0 ? (
                         <div className="schema-body-editor schema-body-editor--sim">
                           {inputs[i].bodyFields.map((field, fi) => (
@@ -393,11 +384,6 @@ function SimPanel({ steps, baseUrl, onClose }) {
         })}
       </div>
 
-      {steps.length > 0 && (
-        <div className="sim-panel__footer">
-          <span className="muted">{'{{step0.field}}'} — reference a previous step's response</span>
-        </div>
-      )}
     </div>
   )
 }

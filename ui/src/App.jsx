@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNodoxSocket } from './hooks/useNodoxSocket'
 import { SchemaTree } from './components/SchemaTree'
 import { Playground } from './components/Playground'
+import { version } from '../../package.json'
 import './styles.css'
 
 // Lazy-load the chain builder — only fetches the React Flow chunk when the Chain tab opens
@@ -40,11 +41,12 @@ const TOUR_STEPS = [
   {
     target: '.view-tabs',
     title: 'Chain builder',
-    body: 'Switch to Chain to wire endpoints together. Add routes to the canvas, connect them, then click Simulate. Use {{step0.field}} to pipe data between steps.',
+    body: 'Switch to Chain to wire endpoints together. Add routes to the canvas, connect them, then click Simulate.',
+    needsChain: true,
   },
 ]
 
-function Tour({ step, routes, selectedRoute, onSelectRoute, onNext, onPrev, onFinish }) {
+function Tour({ step, routes, selectedRoute, onSelectRoute, setView, onNext, onPrev, onFinish }) {
   const s = TOUR_STEPS[step]
   const total = TOUR_STEPS.length
   const isFirst = step === 0
@@ -54,21 +56,27 @@ function Tour({ step, routes, selectedRoute, onSelectRoute, onNext, onPrev, onFi
     // Remove any previous highlight
     document.querySelectorAll('.tour-target').forEach(el => el.classList.remove('tour-target'))
 
+    // Switch view based on step
+    setView(s.needsChain ? 'chain' : 'routes')
+
     // Auto-select first route for steps that need a route visible
     if (s.needsRoute && !selectedRoute && routes.length > 0) {
       onSelectRoute(routes[0])
     }
 
-    // Highlight target element
-    if (s.target) {
-      const el = document.querySelector(s.target)
-      if (el) {
-        el.classList.add('tour-target')
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    // Highlight target element — defer so the view has time to render
+    const t = setTimeout(() => {
+      if (s.target) {
+        const el = document.querySelector(s.target)
+        if (el) {
+          el.classList.add('tour-target')
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
       }
-    }
+    }, 50)
 
     return () => {
+      clearTimeout(t)
       document.querySelectorAll('.tour-target').forEach(el => el.classList.remove('tour-target'))
     }
   }, [step])  // eslint-disable-line
@@ -198,10 +206,10 @@ function EnvSwitcher({ baseUrl, onChange }) {
 
 // ── Route detail panel ────────────────────────────────────────────────────────
 
-const DETAIL_TABS = ['Schema', 'Playground']
+const DETAIL_TABS = ['Playground', 'Schema']
 
 function RouteDetail({ route, baseUrl }) {
-  const [tab, setTab] = useState('Schema')
+  const [tab, setTab] = useState('Playground')
 
   if (!route) {
     return (
@@ -314,15 +322,32 @@ export default function App() {
   // ChainBuilder writes here on unmount; reads it as initialState on remount.
   const chainSavedState = useRef(null)
   const handleChainStateChange = useCallback((state) => { chainSavedState.current = state }, [])
+  // Snapshot of state before tour started, used to restore on finish
+  const tourSavedState = useRef(null)
 
   function handleBaseUrlChange(url) {
     setBaseUrl(url)
     try { localStorage.setItem('nodox-base-url', url) } catch {}
   }
 
+  function startTour() {
+    // Snapshot current state so we can restore it when the tour ends
+    tourSavedState.current = { view, selectedRoute }
+    // Reset to clean state: routes view, first route selected
+    setView('routes')
+    setSelectedRoute(routes[0] ?? null)
+    setTourStep(0)
+  }
+
   function dismissTour() {
     setTourStep(-1)
     try { localStorage.setItem('nodox-tour-done', '1') } catch {}
+    // Restore pre-tour state
+    if (tourSavedState.current) {
+      setView(tourSavedState.current.view)
+      setSelectedRoute(tourSavedState.current.selectedRoute)
+      tourSavedState.current = null
+    }
   }
 
   const methods = useMemo(() => {
@@ -363,7 +388,7 @@ export default function App() {
             <button
               className="tour-trigger-btn"
               title="Start tour"
-              onClick={() => setTourStep(0)}
+              onClick={startTour}
             >?</button>
             <StatusDot status={status} />
           </div>
@@ -442,7 +467,7 @@ export default function App() {
         </>)}
 
         <div className="sidebar__footer">
-          <span className="muted">nodox v0.1.1</span>
+          <span className="muted">nodox v{version}</span>
           <EnvSwitcher baseUrl={baseUrl} onChange={handleBaseUrlChange} />
         </div>
       </aside>
@@ -471,6 +496,7 @@ export default function App() {
           routes={routes}
           selectedRoute={activeRoute}
           onSelectRoute={setSelectedRoute}
+          setView={setView}
           onNext={() => setTourStep(s => Math.min(s + 1, TOUR_STEPS.length - 1))}
           onPrev={() => setTourStep(s => Math.max(s - 1, 0))}
           onFinish={dismissTour}
