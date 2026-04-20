@@ -208,7 +208,7 @@ function EnvSwitcher({ baseUrl, onChange }) {
 
 const DETAIL_TABS = ['Playground', 'Schema']
 
-function RouteDetail({ route, baseUrl }) {
+function RouteDetail({ route, baseUrl, playgroundCache }) {
   const [tab, setTab] = useState('Playground')
 
   if (!route) {
@@ -296,7 +296,7 @@ function RouteDetail({ route, baseUrl }) {
       {/* Playground tab */}
       {tab === 'Playground' && (
         <div className="detail-panel__section detail-panel__section--flush">
-          <Playground route={route} baseUrl={baseUrl} />
+          <Playground route={route} baseUrl={baseUrl} cache={playgroundCache} />
         </div>
       )}
     </div>
@@ -322,6 +322,7 @@ export default function App() {
   // ChainBuilder writes here on unmount; reads it as initialState on remount.
   const chainSavedState = useRef(null)
   const handleChainStateChange = useCallback((state) => { chainSavedState.current = state }, [])
+  const playgroundCache = useRef({})
   // Snapshot of state before tour started, used to restore on finish
   const tourSavedState = useRef(null)
 
@@ -485,7 +486,7 @@ export default function App() {
             />
           </Suspense>
         ) : (
-          <RouteDetail route={activeRoute} baseUrl={baseUrl} />
+          <RouteDetail key={activeRoute ? `${activeRoute.method}:${activeRoute.path}` : 'none'} route={activeRoute} baseUrl={baseUrl} playgroundCache={playgroundCache} />
         )}
       </main>
 

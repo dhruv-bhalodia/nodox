@@ -13,7 +13,7 @@
  * Schema diffing: save a response as baseline, then compare against subsequent responses.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
 const BODY_METHODS = new Set(['POST', 'PUT', 'PATCH'])
 
@@ -212,7 +212,10 @@ function DiffView({ baseline, current }) {
 
 // ── Playground ────────────────────────────────────────────────────────────────
 
-export function Playground({ route, baseUrl = '' }) {
+export function Playground({ route, baseUrl = '', cache }) {
+  const routeKey = `${route.method}:${route.path}`
+  const cached = cache?.current?.[routeKey]
+
   const pathParams = extractPathParams(route.path)
   const showBody = BODY_METHODS.has(route.method)
 
@@ -220,25 +223,38 @@ export function Playground({ route, baseUrl = '' }) {
   const schemaFields = showBody ? getSchemaFields(route.schema?.input) : null
 
   const [pathValues, setPathValues] = useState(
-    Object.fromEntries(pathParams.map(p => [p, '']))
+    cached?.pathValues ?? Object.fromEntries(pathParams.map(p => [p, '']))
   )
-  const [queryParams, setQueryParams] = useState([{ key: '', value: '' }])
-  const [headers, setHeaders] = useState([{ key: 'Content-Type', value: 'application/json' }])
+  const [queryParams, setQueryParams] = useState(cached?.queryParams ?? [{ key: '', value: '' }])
+  const [headers, setHeaders] = useState(cached?.headers ?? [{ key: 'Content-Type', value: 'application/json' }])
 
   // Schema-based body: pre-filled key rows, user only fills values
   const [bodyFields, setBodyFields] = useState(
-    () => schemaFields
+    cached?.bodyFields ?? (schemaFields
       ? schemaFields.map(f => ({ key: f.key, value: '', type: f.type, required: f.required }))
-      : []
+      : [])
   )
   // Raw JSON body fallback (when no schema)
-  const [body, setBody] = useState('')
+  const [body, setBody] = useState(cached?.body ?? '')
   const [bodyError, setBodyError] = useState(null)
 
-  const [response, setResponse] = useState(null)
+  const [response, setResponse] = useState(cached?.response ?? null)
   const [loading, setLoading] = useState(false)
-  const [elapsed, setElapsed] = useState(null)
-  const [baseline, setBaseline] = useState(null)
+  const [elapsed, setElapsed] = useState(cached?.elapsed ?? null)
+  const [baseline, setBaseline] = useState(cached?.baseline ?? null)
+
+  // Track latest state values for the unmount-save effect
+  const stateRef = useRef({})
+  stateRef.current = { pathValues, queryParams, headers, body, bodyFields, response, elapsed, baseline }
+
+  useEffect(() => {
+    return () => {
+      if (cache?.current) {
+        cache.current[routeKey] = { ...stateRef.current }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeKey])
 
   const handleBodyChange = (val) => {
     setBody(val)

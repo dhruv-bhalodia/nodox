@@ -140,9 +140,10 @@ function interpolate(text, results) {
 
 // ── Simulation panel ──────────────────────────────────────────────────────────
 
-function SimPanel({ steps, baseUrl, onClose }) {
-  const [inputs, setInputs] = useState(() =>
-    steps.map(s => {
+function SimPanel({ steps, baseUrl, onClose, savedState, stateRef }) {
+  const [inputs, setInputs] = useState(() => {
+    if (savedState?.inputs?.length === steps.length) return savedState.inputs
+    return steps.map(s => {
       const schemaFields = getSchemaFields(s.data.schema?.input)
       return {
         pathParams: Object.fromEntries(
@@ -154,11 +155,15 @@ function SimPanel({ steps, baseUrl, onClose }) {
           : [],
       }
     })
-  )
-  const [results, setResults] = useState(new Array(steps.length).fill(null))
+  })
+  const [results, setResults] = useState(savedState?.results ?? new Array(steps.length).fill(null))
   const [running, setRunning] = useState(false)
   const [runningStep, setRunningStep] = useState(-1)
-  const [expanded, setExpanded] = useState(new Array(steps.length).fill(false))
+  const [expanded, setExpanded] = useState(savedState?.expanded ?? new Array(steps.length).fill(false))
+
+  // Write latest state into the shared ref every render so the parent can read
+  // it on unmount without depending on effect cleanup ordering.
+  if (stateRef) stateRef.current = { inputs, results, expanded }
 
   async function runAll() {
     if (running || steps.length === 0) return
@@ -464,6 +469,13 @@ export default function ChainBuilder({ routes, baseUrl = '', addRequest, savedSt
   const rfRef = useRef(null)     // ReactFlow instance (set via onInit)
   const canvasRef = useRef(null) // canvas wrapper div
 
+  // Track the timestamp of the last add-request we processed so that on remount
+  // the stale addRequest from the previous mount is not re-executed.
+  const lastAddedT = useRef(savedState?.lastAddedT ?? null)
+
+  // Persist SimPanel inputs/results/expanded across tab switches.
+  const simStateRef = useRef(savedState?.simState ?? null)
+
   // Always keep a ref to the latest state so we can save it on unmount without
   // adding nodes/edges/simOpen as deps to the cleanup effect.
   const latestRef = useRef({ nodes, edges, simOpen })
@@ -481,6 +493,8 @@ export default function ChainBuilder({ routes, baseUrl = '', addRequest, savedSt
         })),
         edges,
         simOpen,
+        lastAddedT: lastAddedT.current,
+        simState: simStateRef.current,
       })
     }
   }, []) // eslint-disable-line
@@ -548,9 +562,13 @@ export default function ChainBuilder({ routes, baseUrl = '', addRequest, savedSt
     }])
   }
 
-  // Watch for add-route requests from App sidebar
+  // Watch for add-route requests from App sidebar.
+  // Guard against re-executing the same request on remount by tracking its timestamp.
   useEffect(() => {
-    if (addRequest?.route) addRoute(addRequest.route)
+    if (addRequest?.route && addRequest.t !== lastAddedT.current) {
+      lastAddedT.current = addRequest.t
+      addRoute(addRequest.route)
+    }
   }, [addRequest]) // eslint-disable-line
 
   function clearCanvas() {
@@ -620,6 +638,8 @@ export default function ChainBuilder({ routes, baseUrl = '', addRequest, savedSt
           steps={simSteps}
           baseUrl={baseUrl}
           onClose={() => setSimOpen(false)}
+          savedState={simStateRef.current}
+          stateRef={simStateRef}
         />
       )}
     </div>
